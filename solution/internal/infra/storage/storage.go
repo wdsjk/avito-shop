@@ -1,32 +1,25 @@
-package postgres
+package storage
 
 import (
 	"database/sql"
 	"fmt"
 
-	_ "github.com/jackc/pgx/v5/stdlib"
-	"golang.org/x/crypto/bcrypt"
+	"github.com/wdsjk/avito-shop/internal/config"
 )
 
-type Storage struct {
-	db *sql.DB
-}
+func NewStorage(config *config.Config) (*sql.DB, error) {
+	const op = "infra.storage.storage.NewStorage"
 
-func New(
-	user string,
-	password string,
-	dbName string,
-	host string,
-	port string,
-) (*Storage, error) {
-	const op = "storage.postgres.New"
-
-	dbUrl := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", user, password, host, port, dbName)
-	db, err := sql.Open("pgx", dbUrl)
+	dns := fmt.Sprintf(
+		"postgres://%s:%s@%s:%s/%s",
+		config.DbUser, config.DbPassword, config.DbHost, config.DbPort, config.DbName,
+	)
+	db, err := sql.Open("pgx", dns)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
+	// TODO: migrations
 	stmt, err := db.Prepare(`
 	CREATE TABLE IF NOT EXISTS items (
 		id SERIAL PRIMARY KEY,
@@ -97,28 +90,5 @@ func New(
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return &Storage{db: db}, nil
-}
-
-// Employee operations
-
-func (s *Storage) SaveEmployee(name, password string) (string, error) {
-	const op = "storage.postgres.saveEmployee"
-
-	stmt, err := s.db.Prepare(`INSERT INTO employees (name, password, coins, bought_items) VALUES ($1, $2, $3, $4);`)
-	if err != nil {
-		return "", fmt.Errorf("%s: %w", op, err)
-	}
-
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return "", fmt.Errorf("%s: %w", op, err)
-	}
-
-	_, err = stmt.Exec(name, hashedPassword, 1000, []string{})
-	if err != nil {
-		return "", fmt.Errorf("%s: %w", op, err)
-	}
-
-	return name, nil
+	return db, nil
 }
