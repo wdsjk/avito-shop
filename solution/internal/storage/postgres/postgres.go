@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Storage struct {
@@ -69,6 +70,7 @@ func New(
 	CREATE TABLE IF NOT EXISTS employees (
 		id SERIAL PRIMARY KEY,
 		name VARCHAR(50) NOT NULL UNIQUE,
+		password VARCHAR(100) NOT NULL,
 		coins NUMERIC CHECK (coins > -1),
 		bought_items VARCHAR(50)[]
 	);`)
@@ -83,8 +85,8 @@ func New(
 	stmt, err = db.Prepare(`
 	CREATE TABLE IF NOT EXISTS transfers (
 		id SERIAL PRIMARY KEY,
-		sender_id INT REFERENCES employees(id),
-		receiver_id INT REFERENCES employees(id),
+		sender_name VARCHAR(50) REFERENCES employees(name),
+		receiver_name VARCHAR(50) REFERENCES employees(name),
 		amount NUMERIC CHECK (amount > 0) NOT NULL
 	);`)
 	if err != nil {
@@ -96,4 +98,27 @@ func New(
 	}
 
 	return &Storage{db: db}, nil
+}
+
+// Employee operations
+
+func (s *Storage) SaveEmployee(name, password string) (string, error) {
+	const op = "storage.postgres.saveEmployee"
+
+	stmt, err := s.db.Prepare(`INSERT INTO employees (name, password, coins, bought_items) VALUES ($1, $2, $3, $4);`)
+	if err != nil {
+		return "", fmt.Errorf("%s: %w", op, err)
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", fmt.Errorf("%s: %w", op, err)
+	}
+
+	_, err = stmt.Exec(name, hashedPassword, 1000, []string{})
+	if err != nil {
+		return "", fmt.Errorf("%s: %w", op, err)
+	}
+
+	return name, nil
 }
