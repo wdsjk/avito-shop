@@ -12,17 +12,23 @@ import (
 )
 
 type Server struct {
-	addr string
+	addr    string
+	handler http.Handler
+	cfg     *config.Config
 }
 
-func NewServer(cfg *config.Config) *Server {
-	return &Server{addr: cfg.HTTPServer.Address}
+func NewServer(cfg *config.Config, handler http.Handler) *Server {
+	return &Server{
+		addr:    cfg.HTTPServer.Address,
+		handler: handler,
+		cfg:     cfg,
+	}
 }
 
-func (s *Server) Start(cfg *config.Config, log *slog.Logger, handler http.Handler) error {
+func (s *Server) Start(log *slog.Logger) error {
 	srv := &http.Server{
 		Addr:    s.addr,
-		Handler: handler,
+		Handler: s.handler,
 	}
 
 	idleConnsClosed := make(chan struct{})
@@ -33,7 +39,7 @@ func (s *Server) Start(cfg *config.Config, log *slog.Logger, handler http.Handle
 
 		log.Info("shutting down server...")
 
-		ctx, cancel := context.WithTimeout(context.Background(), cfg.HTTPServer.IdleTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), s.cfg.IdleTimeout)
 		defer cancel()
 		if err := srv.Shutdown(ctx); err != nil {
 			log.Error("http server shutdown error", "error", err)

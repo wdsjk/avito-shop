@@ -4,11 +4,13 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
 	"github.com/wdsjk/avito-shop/internal/config"
 	"github.com/wdsjk/avito-shop/internal/employee"
 	"github.com/wdsjk/avito-shop/internal/infra/storage"
 	"github.com/wdsjk/avito-shop/internal/infra/storage/postgres"
-	"github.com/wdsjk/avito-shop/internal/server"
+	"github.com/wdsjk/avito-shop/internal/infra/transport/http/server"
 	"github.com/wdsjk/avito-shop/internal/shop"
 	"github.com/wdsjk/avito-shop/internal/transfer"
 )
@@ -40,13 +42,24 @@ func main() {
 	transferRepo := postgres.NewTransferRepository(storage)
 	transferService := transfer.NewTransferService(transferRepo)
 
-	server := server.NewServer(cfg)
-	// err = server.Start()
+	// TODO: handlers
+	r := chi.NewRouter()
+
+	r.Use(middleware.RequestID)
+	// r.Use(middleware.Logger) <- will make our middleware with our logger
+
+	server := server.NewServer(cfg, r)
+	err = server.Start(log)
+	if err != nil {
+		log.Error("failed to start server", "error", err)
+		os.Exit(1)
+	}
 
 	_ = employeeService
 	_ = transferService
 	_ = shop
 	_ = server
+	_ = r
 }
 
 func setupLogger(env string) *slog.Logger {
