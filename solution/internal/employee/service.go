@@ -1,28 +1,37 @@
 package employee
 
-import "context"
+import (
+	"context"
 
-type Service struct {
+	"github.com/wdsjk/avito-shop/internal/shop"
+	"github.com/wdsjk/avito-shop/internal/transfer"
+)
+
+type EmployeeService struct {
 	repo Repository
 }
 
-func NewEmployeeService(repo Repository) *Service {
-	return &Service{repo: repo}
+func NewEmployeeService(repo Repository) *EmployeeService {
+	return &EmployeeService{repo: repo}
 }
 
-func (s *Service) SaveEmployee(ctx context.Context, name string, password string) (string, error) {
+func (s *EmployeeService) SaveEmployee(ctx context.Context, name string, password string) (string, error) {
 	return s.repo.SaveEmployee(ctx, name, password)
 }
 
-func (s *Service) GetEmployee(ctx context.Context, name string) (*EmployeeDto, error) {
+func (s *EmployeeService) GetEmployee(ctx context.Context, name string) (*EmployeeDto, error) {
 	employee, err := s.repo.GetEmployee(ctx, name)
 	if err != nil {
 		return nil, err
 	}
 
-	return &EmployeeDto{
-		Name:  employee.Name,
-		Coins: employee.Coins,
-		Items: employee.Items,
-	}, nil
+	return ToDto(employee), nil
+}
+
+func (s *EmployeeService) BuyItem(ctx context.Context, name, item string, shop shop.Shop, t *transfer.TransferService) error {
+	return s.repo.BuyItem(ctx, name, item, shop, t)
+}
+
+func (s *EmployeeService) TransferCoins(ctx context.Context, sender, receiver string, amount int, t *transfer.TransferService) error {
+	return s.repo.TransferCoins(ctx, sender, receiver, amount, t)
 }
