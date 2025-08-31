@@ -8,6 +8,7 @@ import (
 	"github.com/wdsjk/avito-shop/internal/employee"
 	"github.com/wdsjk/avito-shop/internal/infra/storage"
 	"github.com/wdsjk/avito-shop/internal/infra/storage/postgres"
+	"github.com/wdsjk/avito-shop/internal/server"
 	"github.com/wdsjk/avito-shop/internal/shop"
 	"github.com/wdsjk/avito-shop/internal/transfer"
 )
@@ -31,16 +32,21 @@ func main() {
 		os.Exit(1)
 	}
 
-	employeeRepo := postgres.NewEmployeeRepository(storage)
-	transferRepo := postgres.NewTransferRepository(storage)
-
 	shop := shop.NewShop()
+
+	employeeRepo := postgres.NewEmployeeRepository(storage)
 	employeeService := employee.NewEmployeeService(employeeRepo)
+
+	transferRepo := postgres.NewTransferRepository(storage)
 	transferService := transfer.NewTransferService(transferRepo)
+
+	server := server.NewServer(cfg)
+	// err = server.Start()
 
 	_ = employeeService
 	_ = transferService
 	_ = shop
+	_ = server
 }
 
 func setupLogger(env string) *slog.Logger {
