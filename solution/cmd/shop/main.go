@@ -10,6 +10,7 @@ import (
 	"github.com/wdsjk/avito-shop/internal/employee"
 	"github.com/wdsjk/avito-shop/internal/infra/storage"
 	"github.com/wdsjk/avito-shop/internal/infra/storage/postgres"
+	mwlogger "github.com/wdsjk/avito-shop/internal/infra/transport/http/middleware/logger"
 	"github.com/wdsjk/avito-shop/internal/infra/transport/http/server"
 	"github.com/wdsjk/avito-shop/internal/shop"
 	"github.com/wdsjk/avito-shop/internal/transfer"
@@ -46,7 +47,9 @@ func main() {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
-	// r.Use(middleware.Logger) <- will make our middleware with our logger
+	r.Use(mwlogger.New(log)) // middleware with our logger
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.URLFormat) // strong coherence with chi, might want to refactor in future
 
 	server := server.NewServer(cfg, r)
 	err = server.Start(log)
