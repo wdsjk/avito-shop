@@ -13,6 +13,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+var (
+	errEmpNotFound  = fmt.Errorf("employee not found")
+	errItemNotFound = fmt.Errorf("item not found")
+	errNoCoins      = fmt.Errorf("not enough coins")
+)
+
 type EmployeeRepository struct {
 	db *sql.DB
 }
@@ -53,6 +59,9 @@ func (r *EmployeeRepository) GetEmployee(ctx context.Context, name string) (*emp
 	var emp employee.Employee
 	err = stmt.QueryRowContext(ctx, name).Scan(&emp.ID, &emp.Name, &emp.Password, &emp.Coins, (*pq.StringArray)(&emp.Items))
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("%s: %w", op, errEmpNotFound)
+		}
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
@@ -69,11 +78,11 @@ func (r *EmployeeRepository) BuyItem(ctx context.Context, name, item string, sho
 
 	price, ok := shop[item]
 	if !ok {
-		return fmt.Errorf("%s: item %s not found", op, item)
+		return fmt.Errorf("%s: %w", op, errItemNotFound)
 	}
 
 	if emp.Coins-price < 0 {
-		return fmt.Errorf("%s: not enough coins to buy %s", op, item)
+		return fmt.Errorf("%s: %w", op, errNoCoins)
 	}
 
 	stmt, err := r.db.PrepareContext(ctx, `UPDATE employees SET coins=$1, bought_items=$2 WHERE name=$3;`)
@@ -99,15 +108,21 @@ func (r *EmployeeRepository) TransferCoins(ctx context.Context, senderName, rece
 
 	sender, err := r.GetEmployee(ctx, senderName)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return fmt.Errorf("%s: %w", op, errEmpNotFound)
+		}
 		return fmt.Errorf("%s: %w", op, err)
 	}
 	receiver, err := r.GetEmployee(ctx, receiverName)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return fmt.Errorf("%s: %w", op, errEmpNotFound)
+		}
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	if sender.Coins-amount < 0 {
-		return fmt.Errorf("%s: %s has not enough coins to transfer", op, senderName)
+		return fmt.Errorf("%s: %w", op, errNoCoins)
 	}
 
 	stmt, err := r.db.PrepareContext(ctx, `UPDATE employees SET coins=$1 WHERE name=$2;`)

@@ -17,21 +17,3 @@ func NewShop() Shop {
 		"pink-hoody": 500,
 	}
 }
-
-// func (s Shop) BuyItem(ctx context.Context, emp *employee.EmployeeDto, item string) error {
-// 	const op = "shop.model.BuyItem"
-
-// 	price, ok := s[item]
-// 	if !ok {
-// 		return fmt.Errorf("%s: item %s not found", op, item)
-// 	}
-
-// 	if emp.Coins-price < 0 {
-// 		return fmt.Errorf("%s: not enough coins to buy %s", op, item)
-// 	}
-
-// 	emp.Coins -= price
-// 	emp.Items = append(emp.Items, item)
-
-// 	return nil
-// }
