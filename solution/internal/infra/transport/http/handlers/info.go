@@ -74,6 +74,5 @@ func (h *InfoHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	err = json.NewEncoder(w).Encode(mapper.MapResponse(emp, ts))
 	if err != nil {
 		http.Error(w, "failed to encode response", http.StatusInternalServerError)
-		return
 	}
 }

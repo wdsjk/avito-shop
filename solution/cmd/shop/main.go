@@ -51,11 +51,12 @@ func main() {
 	r.Use(middleware.URLFormat) // strong coherence with chi, might want to refactor in future
 
 	infoHandler := handlers.NewInfoHandler(employeeService, transferService)
+	coinHandler := handlers.NewCoinHandler(employeeService, transferService)
 
-	r.HandleFunc("/api/info", infoHandler.Handle) // GET
-	r.HandleFunc("/api/sendCoin", nil)            // POST
-	r.HandleFunc("/api/buy/{item}", nil)          // GET
-	r.HandleFunc("/api/auth", nil)                // POST
+	r.HandleFunc("/api/info", infoHandler.Handle)     // GET
+	r.HandleFunc("/api/sendCoin", coinHandler.Handle) // POST
+	r.HandleFunc("/api/buy/{item}", nil)              // GET
+	r.HandleFunc("/api/auth", nil)                    // POST
 
 	server := server.NewServer(cfg, r)
 	err = server.Start(log)
