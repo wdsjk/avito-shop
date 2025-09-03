@@ -3,10 +3,10 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
-	"github.com/lib/pq"
 	"github.com/wdsjk/avito-shop/internal/employee"
 	"github.com/wdsjk/avito-shop/internal/shop"
 	"github.com/wdsjk/avito-shop/internal/transfer"
@@ -14,9 +14,9 @@ import (
 )
 
 var (
-	errEmpNotFound  = fmt.Errorf("employee not found")
-	errItemNotFound = fmt.Errorf("item not found")
-	errNoCoins      = fmt.Errorf("not enough coins")
+	errEmpNotFound  = errors.New("employee not found")
+	errItemNotFound = errors.New("item not found")
+	errNoCoins      = errors.New("not enough coins")
 )
 
 type EmployeeRepository struct {
@@ -40,7 +40,7 @@ func (r *EmployeeRepository) SaveEmployee(ctx context.Context, name string, pass
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
-	_, err = stmt.ExecContext(ctx, name, hashedPassword, 1000, []string{})
+	_, err = stmt.ExecContext(ctx, name, hashedPassword, 1000, employee.Inventory{})
 	if err != nil {
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
@@ -57,7 +57,7 @@ func (r *EmployeeRepository) GetEmployee(ctx context.Context, name string) (*emp
 	}
 
 	var emp employee.Employee
-	err = stmt.QueryRowContext(ctx, name).Scan(&emp.ID, &emp.Name, &emp.Password, &emp.Coins, (*pq.StringArray)(&emp.Items))
+	err = stmt.QueryRowContext(ctx, name).Scan(&emp.ID, &emp.Name, &emp.Password, &emp.Coins, &emp.Inventory)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("%s: %w", op, errEmpNotFound)
@@ -90,7 +90,7 @@ func (r *EmployeeRepository) BuyItem(ctx context.Context, name, item string, sho
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	_, err = stmt.ExecContext(ctx, emp.Coins-price, append(emp.Items, item), name)
+	_, err = stmt.ExecContext(ctx, emp.Coins-price, emp.Inventory[item]+1, name)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}

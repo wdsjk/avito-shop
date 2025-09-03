@@ -19,13 +19,13 @@ func (s *EmployeeService) SaveEmployee(ctx context.Context, name string, passwor
 	return s.repo.SaveEmployee(ctx, name, password)
 }
 
-func (s *EmployeeService) GetEmployee(ctx context.Context, name string) (*EmployeeDto, error) {
+func (s *EmployeeService) GetEmployee(ctx context.Context, name string) (*Employee, error) {
 	employee, err := s.repo.GetEmployee(ctx, name)
 	if err != nil {
 		return nil, err
 	}
 
-	return ToDto(employee), nil
+	return employee, nil
 }
 
 func (s *EmployeeService) BuyItem(ctx context.Context, name, item string, shop shop.Shop, t *transfer.TransferService) error {

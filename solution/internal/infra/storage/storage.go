@@ -26,7 +26,7 @@ func NewStorage(config *config.Config) (*sql.DB, error) {
 		name VARCHAR(50) NOT NULL UNIQUE,
 		password VARCHAR(100) NOT NULL,
 		coins INT CHECK (coins > -1),
-		bought_items VARCHAR(50)[]
+		bought_items JSONB
 	);`)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
@@ -41,7 +41,7 @@ func NewStorage(config *config.Config) (*sql.DB, error) {
 	INSERT INTO employees (name, password, coins, bought_items)
 	SELECT name, password, coins, bought_items
 	FROM (VALUES
-		('', '', 0, ARRAY[]::VARCHAR[]) 
+		('', '', 0, '{}'::JSONB)
 	) AS new_employee(name, password, coins, bought_items)
 	WHERE NOT EXISTS (SELECT 1 FROM employees LIMIT 1);`)
 	if err != nil {

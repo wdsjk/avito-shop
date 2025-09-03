@@ -3,13 +3,14 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/wdsjk/avito-shop/internal/transfer"
 )
 
 var (
-	errTransferNotFound = fmt.Errorf("transfer not found")
+	errTransferNotFound = errors.New("transfer not found")
 )
 
 type TransferRepository struct {

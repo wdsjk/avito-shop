@@ -10,6 +10,7 @@ import (
 	"github.com/wdsjk/avito-shop/internal/employee"
 	"github.com/wdsjk/avito-shop/internal/infra/storage"
 	"github.com/wdsjk/avito-shop/internal/infra/storage/postgres"
+	"github.com/wdsjk/avito-shop/internal/infra/transport/http/handlers"
 	mwlogger "github.com/wdsjk/avito-shop/internal/infra/transport/http/middleware/logger"
 	"github.com/wdsjk/avito-shop/internal/infra/transport/http/server"
 	"github.com/wdsjk/avito-shop/internal/shop"
@@ -43,13 +44,18 @@ func main() {
 	transferRepo := postgres.NewTransferRepository(storage)
 	transferService := transfer.NewTransferService(transferRepo)
 
-	// TODO: handlers
 	r := chi.NewRouter()
-
 	r.Use(middleware.RequestID)
 	r.Use(mwlogger.New(log)) // middleware with our logger
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.URLFormat) // strong coherence with chi, might want to refactor in future
+
+	infoHandler := handlers.NewInfoHandler(employeeService, transferService)
+
+	r.HandleFunc("/api/info", infoHandler.Handle) // GET
+	r.HandleFunc("/api/sendCoin", nil)            // POST
+	r.HandleFunc("/api/buy/{item}", nil)          // GET
+	r.HandleFunc("/api/auth", nil)                // POST
 
 	server := server.NewServer(cfg, r)
 	err = server.Start(log)
