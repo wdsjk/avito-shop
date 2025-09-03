@@ -8,3 +8,5 @@ db_password: "postgres"
 db_host: "localhost"
 db_port: 5432
 db_name: "shop"
+
+# TODO: Github actions for dev/prod context switching
