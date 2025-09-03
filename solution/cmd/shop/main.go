@@ -11,6 +11,7 @@ import (
 	"github.com/wdsjk/avito-shop/internal/infra/storage"
 	"github.com/wdsjk/avito-shop/internal/infra/storage/postgres"
 	"github.com/wdsjk/avito-shop/internal/infra/transport/http/handlers"
+	mwauth "github.com/wdsjk/avito-shop/internal/infra/transport/http/middleware/auth"
 	mwlogger "github.com/wdsjk/avito-shop/internal/infra/transport/http/middleware/logger"
 	"github.com/wdsjk/avito-shop/internal/infra/transport/http/server"
 	"github.com/wdsjk/avito-shop/internal/shop"
@@ -53,11 +54,15 @@ func main() {
 	infoHandler := handlers.NewInfoHandler(employeeService, transferService)
 	coinHandler := handlers.NewCoinHandler(employeeService, transferService)
 	shopHandler := handlers.NewShopHandler(employeeService, transferService, shop)
+	authHandler := handlers.NewAuthHandler(employeeService)
 
-	r.HandleFunc("/api/info", infoHandler.Handle)       // GET
-	r.HandleFunc("/api/sendCoin", coinHandler.Handle)   // POST
-	r.HandleFunc("/api/buy/{item}", shopHandler.Handle) // GET
-	r.HandleFunc("/api/auth", nil)                      // POST
+	r.Route("/api", func(r chi.Router) {
+		r.Use(mwauth.Auth)
+		r.HandleFunc("/info", infoHandler.Handle)       // GET
+		r.HandleFunc("/sendCoin", coinHandler.Handle)   // POST
+		r.HandleFunc("/buy/{item}", shopHandler.Handle) // GET
+	})
+	r.HandleFunc("/api/auth", authHandler.Handle) // POST
 
 	server := server.NewServer(cfg, r)
 	err = server.Start(log)

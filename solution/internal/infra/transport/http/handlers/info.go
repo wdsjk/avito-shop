@@ -71,7 +71,7 @@ func (h *InfoHandler) Handle(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(mapper.MapResponse(emp, ts))
+	err = json.NewEncoder(w).Encode(mapper.InfoResponse(emp, ts))
 	if err != nil {
 		http.Error(w, "failed to encode response", http.StatusInternalServerError)
 	}

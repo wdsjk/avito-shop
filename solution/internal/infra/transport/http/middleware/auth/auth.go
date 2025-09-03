@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var secretKey = []byte("your-secret-key") // TODO: env
+var secretKey = []byte(os.Getenv("jwt_secret"))
 
 type Username string
 
