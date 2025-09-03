@@ -73,7 +73,7 @@ func (r *EmployeeRepository) BuyItem(ctx context.Context, name, item string, sho
 
 	emp, err := r.GetEmployee(ctx, name)
 	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
+		return fmt.Errorf("%s: %w", op, ErrEmpNotFound)
 	}
 
 	price, ok := shop[item]

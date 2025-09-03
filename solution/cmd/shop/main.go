@@ -52,11 +52,12 @@ func main() {
 
 	infoHandler := handlers.NewInfoHandler(employeeService, transferService)
 	coinHandler := handlers.NewCoinHandler(employeeService, transferService)
+	shopHandler := handlers.NewShopHandler(employeeService, transferService, shop)
 
-	r.HandleFunc("/api/info", infoHandler.Handle)     // GET
-	r.HandleFunc("/api/sendCoin", coinHandler.Handle) // POST
-	r.HandleFunc("/api/buy/{item}", nil)              // GET
-	r.HandleFunc("/api/auth", nil)                    // POST
+	r.HandleFunc("/api/info", infoHandler.Handle)       // GET
+	r.HandleFunc("/api/sendCoin", coinHandler.Handle)   // POST
+	r.HandleFunc("/api/buy/{item}", shopHandler.Handle) // GET
+	r.HandleFunc("/api/auth", nil)                      // POST
 
 	server := server.NewServer(cfg, r)
 	err = server.Start(log)
@@ -64,12 +65,6 @@ func main() {
 		log.Error("failed to start server", "error", err)
 		os.Exit(1)
 	}
-
-	_ = employeeService
-	_ = transferService
-	_ = shop
-	_ = server
-	_ = r
 }
 
 func setupLogger(env string) *slog.Logger {

@@ -5,26 +5,29 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/wdsjk/avito-shop/internal/employee"
 	dbErr "github.com/wdsjk/avito-shop/internal/infra/storage/postgres"
-	handlers_dto "github.com/wdsjk/avito-shop/internal/infra/transport/http/handlers/dto"
 	"github.com/wdsjk/avito-shop/internal/lib/utils"
+	"github.com/wdsjk/avito-shop/internal/shop"
 	"github.com/wdsjk/avito-shop/internal/transfer"
 )
 
-type CoinHandler struct {
+type ShopHandler struct {
 	employeeService *employee.EmployeeService
 	transferService *transfer.TransferService
+	shop            shop.Shop
 }
 
-func NewCoinHandler(employeeService *employee.EmployeeService, transferService *transfer.TransferService) *CoinHandler {
-	return &CoinHandler{
+func NewShopHandler(employeeService *employee.EmployeeService, transferService *transfer.TransferService, shop shop.Shop) *ShopHandler {
+	return &ShopHandler{
 		employeeService: employeeService,
 		transferService: transferService,
+		shop:            shop,
 	}
 }
 
-func (h *CoinHandler) Handle(w http.ResponseWriter, r *http.Request) {
+func (h *ShopHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	username, ok := r.Context().Value("username").(string)
 	if !ok || username == "" {
 		w.Header().Set("Content-Type", "application/json")
@@ -36,40 +39,38 @@ func (h *CoinHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req handlers_dto.SendCoinRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	item := chi.URLParam(r, "item")
+	if item == "" {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		err := json.NewEncoder(w).Encode(utils.MakeErr("invalid JSON body"))
+		err := json.NewEncoder(w).Encode(utils.MakeErr("item param is required"))
 		if err != nil {
 			http.Error(w, "failed to encode response", http.StatusInternalServerError)
 		}
 		return
 	}
-	defer r.Body.Close()
 
-	err := h.employeeService.TransferCoins(r.Context(), username, req.ToUser, req.Amount, h.transferService)
+	err := h.employeeService.BuyItem(r.Context(), username, item, h.shop, h.transferService)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
-
 		switch {
-		case errors.Is(err, dbErr.ErrEmpNotFound):
+		case errors.Is(err, dbErr.ErrEmpNotFound) || errors.Is(err, dbErr.ErrItemNotFound):
 			w.WriteHeader(http.StatusBadRequest)
-			err = json.NewEncoder(w).Encode(utils.MakeErr("not found"))
+			err := json.NewEncoder(w).Encode(utils.MakeErr("not found"))
 			if err != nil {
 				http.Error(w, "failed to encode response", http.StatusInternalServerError)
 			}
 			return
 		case errors.Is(err, dbErr.ErrNoCoins):
 			w.WriteHeader(http.StatusBadRequest)
-			err = json.NewEncoder(w).Encode(utils.MakeErr("not enough coins"))
+			err := json.NewEncoder(w).Encode(utils.MakeErr("not enough coins"))
 			if err != nil {
 				http.Error(w, "failed to encode response", http.StatusInternalServerError)
 			}
 			return
 		default:
 			w.WriteHeader(http.StatusInternalServerError)
-			err = json.NewEncoder(w).Encode(utils.MakeErr("failed to get transfer info"))
+			err = json.NewEncoder(w).Encode(utils.MakeErr("failed to buy item"))
 			if err != nil {
 				http.Error(w, "failed to encode response", http.StatusInternalServerError)
 			}
