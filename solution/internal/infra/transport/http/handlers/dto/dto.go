@@ -19,12 +19,12 @@ type InfoResponse struct {
 			ToUser string `json:"toUser"`
 			Amount int    `json:"amount"`
 		} `json:"sent"`
-	}
+	} `json:"coinHistory"`
 }
 
 type AuthRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
 }
 
 type AuthResponse struct {
@@ -32,6 +32,6 @@ type AuthResponse struct {
 }
 
 type SendCoinRequest struct {
-	ToUser string `json:"toUser"`
-	Amount int    `json:"amount"`
+	ToUser string `json:"toUser" validate:"required"`
+	Amount int    `json:"amount" validate:"required"`
 }

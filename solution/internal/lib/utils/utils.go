@@ -11,16 +11,11 @@ func MakeErr(msg string) handlers_dto.ErrorResponse {
 	return handlers_dto.ErrorResponse{Errors: msg}
 }
 
-func GenerateJWT(username string) (string, error) {
+func GenerateJWT(username string, secret []byte) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"username": username,
 		"exp":      time.Now().Add(24 * time.Hour).Unix(),
 	})
 
-	tokenString, err := token.SignedString(token)
-	if err != nil {
-		return "", err
-	}
-
-	return tokenString, nil
+	return token.SignedString(secret)
 }

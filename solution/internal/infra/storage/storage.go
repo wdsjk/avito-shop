@@ -26,7 +26,7 @@ func NewStorage(config *config.Config) (*sql.DB, error) {
 		name VARCHAR(50) NOT NULL UNIQUE,
 		password VARCHAR(100) NOT NULL,
 		coins INT CHECK (coins > -1),
-		bought_items JSONB
+		bought_items JSONB NOT NULL
 	);`)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)

@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"net/http"
 
 	"github.com/wdsjk/avito-shop/internal/employee"
@@ -15,12 +16,18 @@ import (
 type InfoHandler struct {
 	employeeService *employee.EmployeeService
 	transferService *transfer.TransferService
+	log             *slog.Logger
 }
 
-func NewInfoHandler(employeeService *employee.EmployeeService, transferService *transfer.TransferService) *InfoHandler {
+func NewInfoHandler(
+	employeeService *employee.EmployeeService,
+	transferService *transfer.TransferService,
+	log *slog.Logger,
+) *InfoHandler {
 	return &InfoHandler{
 		employeeService: employeeService,
 		transferService: transferService,
+		log:             log,
 	}
 }
 
@@ -31,6 +38,7 @@ func (h *InfoHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(utils.MakeErr("unauthorized"))
 		if err != nil {
+			h.log.Error("failed to encode response", "error", err)
 			http.Error(w, "failed to encode response", http.StatusInternalServerError)
 		}
 		return
@@ -43,10 +51,12 @@ func (h *InfoHandler) Handle(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			err = json.NewEncoder(w).Encode(utils.MakeErr("not found"))
 		} else {
+			h.log.Error("failed to get employee info", "error", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			err = json.NewEncoder(w).Encode(utils.MakeErr("failed to get employee info"))
 		}
 		if err != nil {
+			h.log.Error("failed to encode response", "error", err)
 			http.Error(w, "failed to encode response", http.StatusInternalServerError)
 		}
 		return
@@ -60,10 +70,12 @@ func (h *InfoHandler) Handle(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			err = json.NewEncoder(w).Encode(utils.MakeErr("not found"))
 		} else {
+			h.log.Error("failed to get transfer info", "error", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			err = json.NewEncoder(w).Encode(utils.MakeErr("failed to get transfer info"))
 		}
 		if err != nil {
+			h.log.Error("failed to encode response", "error", err)
 			http.Error(w, "failed to encode response", http.StatusInternalServerError)
 		}
 		return
@@ -73,6 +85,7 @@ func (h *InfoHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(w).Encode(mapper.InfoResponse(emp, ts))
 	if err != nil {
+		h.log.Error("failed to encode response", "error", err)
 		http.Error(w, "failed to encode response", http.StatusInternalServerError)
 	}
 }

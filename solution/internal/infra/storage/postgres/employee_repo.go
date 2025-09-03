@@ -85,12 +85,17 @@ func (r *EmployeeRepository) BuyItem(ctx context.Context, name, item string, sho
 		return fmt.Errorf("%s: %w", op, ErrNoCoins)
 	}
 
+	if emp.Inventory == nil {
+		emp.Inventory = make(employee.Inventory)
+	}
+	emp.Inventory[item] = emp.Inventory[item] + 1
+
 	stmt, err := r.db.PrepareContext(ctx, `UPDATE employees SET coins=$1, bought_items=$2 WHERE name=$3;`)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	_, err = stmt.ExecContext(ctx, emp.Coins-price, emp.Inventory[item]+1, name)
+	_, err = stmt.ExecContext(ctx, emp.Coins-price, emp.Inventory, name)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}

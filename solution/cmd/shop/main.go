@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-playground/validator/v10"
 	"github.com/wdsjk/avito-shop/internal/config"
 	"github.com/wdsjk/avito-shop/internal/employee"
 	"github.com/wdsjk/avito-shop/internal/infra/storage"
@@ -25,7 +26,7 @@ const (
 
 func main() {
 	cfg := config.MustLoad()
-
+	valid := validator.New()
 	log := setupLogger(cfg.Env)
 
 	log.Info("starting avito-shop service", "env", cfg.Env)
@@ -51,10 +52,10 @@ func main() {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.URLFormat) // strong coherence with chi, might want to refactor in future
 
-	infoHandler := handlers.NewInfoHandler(employeeService, transferService)
-	coinHandler := handlers.NewCoinHandler(employeeService, transferService)
-	shopHandler := handlers.NewShopHandler(employeeService, transferService, shop)
-	authHandler := handlers.NewAuthHandler(employeeService)
+	infoHandler := handlers.NewInfoHandler(employeeService, transferService, log)
+	coinHandler := handlers.NewCoinHandler(employeeService, transferService, valid, log)
+	shopHandler := handlers.NewShopHandler(employeeService, transferService, shop, log)
+	authHandler := handlers.NewAuthHandler(employeeService, valid, log)
 
 	r.Route("/api", func(r chi.Router) {
 		r.Use(mwauth.Auth)

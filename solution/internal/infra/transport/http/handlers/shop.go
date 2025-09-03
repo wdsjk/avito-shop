@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -17,13 +18,18 @@ type ShopHandler struct {
 	employeeService *employee.EmployeeService
 	transferService *transfer.TransferService
 	shop            shop.Shop
+	log             *slog.Logger
 }
 
-func NewShopHandler(employeeService *employee.EmployeeService, transferService *transfer.TransferService, shop shop.Shop) *ShopHandler {
+func NewShopHandler(
+	employeeService *employee.EmployeeService, transferService *transfer.TransferService,
+	shop shop.Shop, log *slog.Logger,
+) *ShopHandler {
 	return &ShopHandler{
 		employeeService: employeeService,
 		transferService: transferService,
 		shop:            shop,
+		log:             log,
 	}
 }
 
@@ -34,6 +40,7 @@ func (h *ShopHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		err := json.NewEncoder(w).Encode(utils.MakeErr("unauthorized"))
 		if err != nil {
+			h.log.Error("failed to encode response", "error", err)
 			http.Error(w, "failed to encode response", http.StatusInternalServerError)
 		}
 		return
@@ -45,6 +52,7 @@ func (h *ShopHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		err := json.NewEncoder(w).Encode(utils.MakeErr("item param is required"))
 		if err != nil {
+			h.log.Error("failed to encode response", "error", err)
 			http.Error(w, "failed to encode response", http.StatusInternalServerError)
 		}
 		return
@@ -58,6 +66,7 @@ func (h *ShopHandler) Handle(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			err := json.NewEncoder(w).Encode(utils.MakeErr("not found"))
 			if err != nil {
+				h.log.Error("failed to encode response", "error", err)
 				http.Error(w, "failed to encode response", http.StatusInternalServerError)
 			}
 			return
@@ -65,6 +74,7 @@ func (h *ShopHandler) Handle(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			err := json.NewEncoder(w).Encode(utils.MakeErr("not enough coins"))
 			if err != nil {
+				h.log.Error("failed to encode response", "error", err)
 				http.Error(w, "failed to encode response", http.StatusInternalServerError)
 			}
 			return
@@ -72,6 +82,7 @@ func (h *ShopHandler) Handle(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			err = json.NewEncoder(w).Encode(utils.MakeErr("failed to buy item"))
 			if err != nil {
+				h.log.Error("failed to encode response", "error", err)
 				http.Error(w, "failed to encode response", http.StatusInternalServerError)
 			}
 			return

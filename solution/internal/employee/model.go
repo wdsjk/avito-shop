@@ -1,9 +1,9 @@
 package employee
 
 import (
-	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"fmt"
 )
 
 var (
@@ -20,21 +20,22 @@ type Employee struct {
 	Inventory `db:"bought_items"`
 }
 
-func (i Inventory) Value() (driver.Value, error) {
-	return json.Marshal(i)
-}
+func (i *Inventory) Scan(src interface{}) error {
+	if src == nil {
+		*i = make(Inventory)
+		return nil
+	}
 
-func (i *Inventory) Scan(value interface{}) error {
-	bytes, ok := value.([]byte)
+	bytes, ok := src.([]byte)
 	if !ok {
-		return errTypeAssertion
+		return fmt.Errorf("%s", errTypeAssertion)
 	}
 
-	m := make(map[string]int)
+	var m map[string]int
 	if err := json.Unmarshal(bytes, &m); err != nil {
-		return err
+		return fmt.Errorf("failed to unmarshal JSONB: %w", err)
 	}
 
-	*i = m
+	*i = Inventory(m)
 	return nil
 }
