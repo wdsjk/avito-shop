@@ -2,12 +2,12 @@ package mapper
 
 import (
 	"github.com/wdsjk/avito-shop/internal/employee"
-	dto "github.com/wdsjk/avito-shop/internal/infra/transport/http/handlers/dto"
+	handlers_dto "github.com/wdsjk/avito-shop/internal/infra/transport/http/handlers/dto"
 	"github.com/wdsjk/avito-shop/internal/transfer"
 )
 
-func MapResponse(emp *employee.Employee, coinHistory []*transfer.TransferDto) *dto.InfoResponse {
-	resp := &dto.InfoResponse{
+func MapResponse(emp *employee.Employee, coinHistory []*transfer.TransferDto) *handlers_dto.InfoResponse {
+	resp := &handlers_dto.InfoResponse{
 		Coins: emp.Coins,
 		Inventory: make([]struct {
 			Type     string `json:"type"`

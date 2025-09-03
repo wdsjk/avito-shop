@@ -14,9 +14,9 @@ import (
 )
 
 var (
-	errEmpNotFound  = errors.New("employee not found")
-	errItemNotFound = errors.New("item not found")
-	errNoCoins      = errors.New("not enough coins")
+	ErrEmpNotFound  = errors.New("employee not found")
+	ErrItemNotFound = errors.New("item not found")
+	ErrNoCoins      = errors.New("not enough coins")
 )
 
 type EmployeeRepository struct {
@@ -60,7 +60,7 @@ func (r *EmployeeRepository) GetEmployee(ctx context.Context, name string) (*emp
 	err = stmt.QueryRowContext(ctx, name).Scan(&emp.ID, &emp.Name, &emp.Password, &emp.Coins, &emp.Inventory)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("%s: %w", op, errEmpNotFound)
+			return nil, fmt.Errorf("%s: %w", op, ErrEmpNotFound)
 		}
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
@@ -78,11 +78,11 @@ func (r *EmployeeRepository) BuyItem(ctx context.Context, name, item string, sho
 
 	price, ok := shop[item]
 	if !ok {
-		return fmt.Errorf("%s: %w", op, errItemNotFound)
+		return fmt.Errorf("%s: %w", op, ErrItemNotFound)
 	}
 
 	if emp.Coins-price < 0 {
-		return fmt.Errorf("%s: %w", op, errNoCoins)
+		return fmt.Errorf("%s: %w", op, ErrNoCoins)
 	}
 
 	stmt, err := r.db.PrepareContext(ctx, `UPDATE employees SET coins=$1, bought_items=$2 WHERE name=$3;`)
@@ -109,20 +109,20 @@ func (r *EmployeeRepository) TransferCoins(ctx context.Context, senderName, rece
 	sender, err := r.GetEmployee(ctx, senderName)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return fmt.Errorf("%s: %w", op, errEmpNotFound)
+			return fmt.Errorf("%s: %w", op, ErrEmpNotFound)
 		}
 		return fmt.Errorf("%s: %w", op, err)
 	}
 	receiver, err := r.GetEmployee(ctx, receiverName)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return fmt.Errorf("%s: %w", op, errEmpNotFound)
+			return fmt.Errorf("%s: %w", op, ErrEmpNotFound)
 		}
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	if sender.Coins-amount < 0 {
-		return fmt.Errorf("%s: %w", op, errNoCoins)
+		return fmt.Errorf("%s: %w", op, ErrNoCoins)
 	}
 
 	stmt, err := r.db.PrepareContext(ctx, `UPDATE employees SET coins=$1 WHERE name=$2;`)

@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	errTransferNotFound = errors.New("transfer not found")
+	ErrTransferNotFound = errors.New("transfer not found")
 )
 
 type TransferRepository struct {
@@ -56,7 +56,7 @@ func (r *TransferRepository) GetTransfersByEmployee(ctx context.Context, name st
 		err := rows.Scan(&t.ID, &t.SenderName, &t.ReceiverName, &t.Amount)
 		if err != nil {
 			if err == sql.ErrNoRows {
-				return nil, fmt.Errorf("%s: %w", op, errTransferNotFound)
+				return nil, fmt.Errorf("%s: %w", op, ErrTransferNotFound)
 			}
 			return nil, fmt.Errorf("%s: %w", op, err)
 		}
