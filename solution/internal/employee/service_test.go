@@ -63,6 +63,16 @@ func (m *mockTransferRepo) GetTransfersByEmployee(ctx context.Context, name stri
 	return []*transfer.Transfer{}, nil
 }
 
+func assertErrorIs(t *testing.T, got, want error) {
+	t.Helper()
+	if got == nil {
+		t.Fatal("expected error, got nil")
+	}
+	if !errors.Is(got, want) {
+		t.Errorf("expected: %v, got: %v", want, got)
+	}
+}
+
 func TestSaveEmployee_Success(t *testing.T) {
 	// Arrange
 	expectedName := "name"
@@ -101,12 +111,7 @@ func TestSaveEmployee_Fail(t *testing.T) {
 	_, err := service.SaveEmployee(context.Background(), "", "")
 
 	// Assert
-	if err == nil {
-		t.Fatal("expected error, got nil")
-	}
-	if !errors.Is(err, expectedErr) {
-		t.Errorf("expected: %v, got: %v", expectedErr, err)
-	}
+	assertErrorIs(t, err, expectedErr)
 }
 
 func TestGetEmployee_Success(t *testing.T) {
@@ -161,12 +166,7 @@ func TestGetEmployee_Fail(t *testing.T) {
 	_, err := service.GetEmployee(context.Background(), "")
 
 	// Assert
-	if err == nil {
-		t.Fatal("expected error, got nil")
-	}
-	if !errors.Is(err, expectedErr) {
-		t.Errorf("expected: %v, got: %v", expectedErr, err)
-	}
+	assertErrorIs(t, err, expectedErr)
 }
 
 func TestBuyItem_Success(te *testing.T) {
@@ -258,12 +258,7 @@ func TestBuyItem_Fail(t *testing.T) {
 
 			err := service.BuyItem(context.Background(), "", "", shop.NewShop(), tr)
 
-			if err == nil {
-				t.Fatal("expected error, got nil")
-			}
-			if !errors.Is(err, tt.want) {
-				t.Errorf("expected: %v, got: %v", tt.want, err)
-			}
+			assertErrorIs(t, err, tt.want)
 		})
 	}
 }
@@ -355,12 +350,7 @@ func TestTransferCoins_Fail(t *testing.T) {
 
 			err := service.TransferCoins(context.Background(), "", "", 100, tr)
 
-			if err == nil {
-				t.Fatal("expected error, got nil")
-			}
-			if !errors.Is(err, tt.want) {
-				t.Errorf("expected: %v, got: %v", tt.want, err)
-			}
+			assertErrorIs(t, err, tt.want)
 		})
 	}
 }
