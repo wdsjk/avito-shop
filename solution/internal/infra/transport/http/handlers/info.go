@@ -14,14 +14,14 @@ import (
 )
 
 type InfoHandler struct {
-	employeeService *employee.EmployeeService
-	transferService *transfer.TransferService
+	employeeService employee.Service
+	transferService transfer.Service
 	log             *slog.Logger
 }
 
 func NewInfoHandler(
-	employeeService *employee.EmployeeService,
-	transferService *transfer.TransferService,
+	employeeService employee.Service,
+	transferService transfer.Service,
 	log *slog.Logger,
 ) *InfoHandler {
 	return &InfoHandler{

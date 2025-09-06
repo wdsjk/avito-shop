@@ -70,15 +70,7 @@ func TestShopHandler(t *testing.T) {
 			expectedBody:   `{"errors":"not enough coins"}`,
 		},
 		{
-			name:           "Internal Server Error (failed to encode response)",
-			username:       "username",
-			item:           "item",
-			buyItemErr:     errors.New("db internal error"),
-			expectedStatus: http.StatusInternalServerError,
-			expectedBody:   `{"errors":"failed to buy item"}`,
-		},
-		{
-			name:           "Internal Server Error (failed to encode response)",
+			name:           "Internal Server Error (failed to buy item)",
 			username:       "username",
 			item:           "item",
 			buyItemErr:     errors.New("db internal error"),

@@ -42,3 +42,21 @@ func (m *MockEmployeeService) TransferCoins(ctx context.Context, sender, receive
 	}
 	return nil
 }
+
+type MockTransferService struct {
+	SaveTransferFn           func(ctx context.Context, senderName, receiverName string, amount int) error
+	GetTransfersByEmployeeFn func(ctx context.Context, name string) ([]*transfer.TransferDto, error)
+}
+
+func (m *MockTransferService) SaveTransfer(ctx context.Context, senderName, receiverName string, amount int) error {
+	if m.SaveTransferFn != nil {
+		return m.SaveTransferFn(ctx, senderName, receiverName, amount)
+	}
+	return nil
+}
+func (m *MockTransferService) GetTransfersByEmployee(ctx context.Context, name string) ([]*transfer.TransferDto, error) {
+	if m.GetTransfersByEmployeeFn != nil {
+		return m.GetTransfersByEmployeeFn(ctx, name)
+	}
+	return []*transfer.TransferDto{}, nil
+}
