@@ -9,34 +9,11 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/wdsjk/avito-shop/internal/employee"
 	dbErr "github.com/wdsjk/avito-shop/internal/infra/storage/postgres"
+	"github.com/wdsjk/avito-shop/internal/infra/transport/http/handlers/test"
 	"github.com/wdsjk/avito-shop/internal/shop"
 	"github.com/wdsjk/avito-shop/internal/transfer"
 )
-
-type mockEmployeeService struct {
-	buyItemFn func(ctx context.Context, name, item string, shop shop.Shop, t transfer.Service) error
-}
-
-func (m *mockEmployeeService) SaveEmployee(ctx context.Context, name string, password string) (string, error) {
-	panic("not implemented")
-}
-
-func (m *mockEmployeeService) GetEmployee(ctx context.Context, name string) (*employee.EmployeeDto, error) {
-	panic("not implemented")
-}
-
-func (m *mockEmployeeService) BuyItem(ctx context.Context, name, item string, shop shop.Shop, t transfer.Service) error {
-	if m.buyItemFn != nil {
-		return m.buyItemFn(ctx, name, item, shop, t)
-	}
-	return nil
-}
-
-func (m *mockEmployeeService) TransferCoins(ctx context.Context, sender, receiver string, amount int, t transfer.Service) error {
-	panic("not implemented")
-}
 
 func TestShopHandler(t *testing.T) {
 	tests := []struct {
@@ -114,8 +91,8 @@ func TestShopHandler(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Arrange
 			handler := NewShopHandler(
-				&mockEmployeeService{
-					buyItemFn: func(ctx context.Context, name, item string, shop shop.Shop, t transfer.Service) error {
+				&test.MockEmployeeService{
+					BuyItemFn: func(ctx context.Context, name, item string, shop shop.Shop, t transfer.Service) error {
 						return tt.buyItemErr
 					},
 				}, nil, nil, nil,
