@@ -12,8 +12,8 @@ import (
 type mockRepo struct {
 	saveEmployeeFn  func(ctx context.Context, name, password string) (string, error)
 	getEmployeeFn   func(ctx context.Context, name string) (*Employee, error)
-	buyItemFn       func(ctx context.Context, name, item string, shop shop.Shop, t *transfer.TransferService) error
-	transferCoinsFn func(ctx context.Context, sender, receiver string, amount int, t *transfer.TransferService) error
+	buyItemFn       func(ctx context.Context, name, item string, shop shop.Shop, t transfer.Service) error
+	transferCoinsFn func(ctx context.Context, sender, receiver string, amount int, t transfer.Service) error
 }
 
 func (m *mockRepo) SaveEmployee(ctx context.Context, name, password string) (string, error) {
@@ -30,14 +30,14 @@ func (m *mockRepo) GetEmployee(ctx context.Context, name string) (*Employee, err
 	return &Employee{}, nil
 }
 
-func (m *mockRepo) BuyItem(ctx context.Context, name, item string, shop shop.Shop, t *transfer.TransferService) error {
+func (m *mockRepo) BuyItem(ctx context.Context, name, item string, shop shop.Shop, t transfer.Service) error {
 	if m.buyItemFn != nil {
 		return m.buyItemFn(ctx, name, item, shop, t)
 	}
 	return nil
 }
 
-func (m *mockRepo) TransferCoins(ctx context.Context, sender, receiver string, amount int, t *transfer.TransferService) error {
+func (m *mockRepo) TransferCoins(ctx context.Context, sender, receiver string, amount int, t transfer.Service) error {
 	if m.transferCoinsFn != nil {
 		return m.transferCoinsFn(ctx, sender, receiver, amount, t)
 	}
@@ -188,7 +188,7 @@ func TestBuyItem_Success(te *testing.T) {
 		},
 	})
 	service := NewEmployeeService(&mockRepo{
-		buyItemFn: func(ctx context.Context, name, item string, s shop.Shop, t *transfer.TransferService) error {
+		buyItemFn: func(ctx context.Context, name, item string, s shop.Shop, t transfer.Service) error {
 			if _, ok := s[item]; !ok {
 				te.Errorf("no item in shop: %s", item)
 			}
@@ -248,7 +248,7 @@ func TestBuyItem_Fail(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tr := transfer.NewTransferService(&mockTransferRepo{})
 			service := NewEmployeeService(&mockRepo{
-				buyItemFn: func(ctx context.Context, name, item string, s shop.Shop, t *transfer.TransferService) error {
+				buyItemFn: func(ctx context.Context, name, item string, s shop.Shop, t transfer.Service) error {
 					return tt.want
 				},
 			})
@@ -288,7 +288,7 @@ func TestTransferCoins_Success(te *testing.T) {
 		},
 	})
 	service := NewEmployeeService(&mockRepo{
-		transferCoinsFn: func(ctx context.Context, sender, receiver string, amount int, t *transfer.TransferService) error {
+		transferCoinsFn: func(ctx context.Context, sender, receiver string, amount int, t transfer.Service) error {
 			if senderEmp.Coins-amount < 0 {
 				te.Errorf("no coins: %d", senderEmp.Coins)
 			}
@@ -340,7 +340,7 @@ func TestTransferCoins_Fail(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tr := transfer.NewTransferService(&mockTransferRepo{})
 			service := NewEmployeeService(&mockRepo{
-				transferCoinsFn: func(ctx context.Context, sender, receiver string, amount int, t *transfer.TransferService) error {
+				transferCoinsFn: func(ctx context.Context, sender, receiver string, amount int, t transfer.Service) error {
 					return tt.want
 				},
 			})

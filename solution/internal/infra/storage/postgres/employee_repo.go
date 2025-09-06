@@ -68,7 +68,7 @@ func (r *EmployeeRepository) GetEmployee(ctx context.Context, name string) (*emp
 	return &emp, nil
 }
 
-func (r *EmployeeRepository) BuyItem(ctx context.Context, name, item string, shop shop.Shop, t *transfer.TransferService) error {
+func (r *EmployeeRepository) BuyItem(ctx context.Context, name, item string, shop shop.Shop, t transfer.Service) error {
 	const op = "infra.storage.postgres.BuyItem"
 
 	emp, err := r.GetEmployee(ctx, name)
@@ -108,7 +108,7 @@ func (r *EmployeeRepository) BuyItem(ctx context.Context, name, item string, sho
 	return nil
 }
 
-func (r *EmployeeRepository) TransferCoins(ctx context.Context, senderName, receiverName string, amount int, t *transfer.TransferService) error {
+func (r *EmployeeRepository) TransferCoins(ctx context.Context, senderName, receiverName string, amount int, t transfer.Service) error {
 	const op = "infra.storage.postgres.TransferCoins"
 
 	sender, err := r.GetEmployee(ctx, senderName)

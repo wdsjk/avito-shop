@@ -15,14 +15,14 @@ import (
 )
 
 type ShopHandler struct {
-	employeeService *employee.EmployeeService
-	transferService *transfer.TransferService
+	employeeService employee.Service
+	transferService transfer.Service
 	shop            shop.Shop
 	log             *slog.Logger
 }
 
 func NewShopHandler(
-	employeeService *employee.EmployeeService, transferService *transfer.TransferService,
+	employeeService employee.Service, transferService transfer.Service,
 	shop shop.Shop, log *slog.Logger,
 ) *ShopHandler {
 	return &ShopHandler{

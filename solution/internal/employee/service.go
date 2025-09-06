@@ -7,6 +7,13 @@ import (
 	"github.com/wdsjk/avito-shop/internal/transfer"
 )
 
+type Service interface {
+	SaveEmployee(ctx context.Context, name string, password string) (string, error)
+	GetEmployee(ctx context.Context, name string) (*EmployeeDto, error)
+	BuyItem(ctx context.Context, name, item string, shop shop.Shop, t transfer.Service) error
+	TransferCoins(ctx context.Context, sender, receiver string, amount int, t transfer.Service) error
+}
+
 type EmployeeService struct {
 	repo Repository
 }
@@ -28,10 +35,10 @@ func (s *EmployeeService) GetEmployee(ctx context.Context, name string) (*Employ
 	return ToDto(employee), nil
 }
 
-func (s *EmployeeService) BuyItem(ctx context.Context, name, item string, shop shop.Shop, t *transfer.TransferService) error {
+func (s *EmployeeService) BuyItem(ctx context.Context, name, item string, shop shop.Shop, t transfer.Service) error {
 	return s.repo.BuyItem(ctx, name, item, shop, t)
 }
 
-func (s *EmployeeService) TransferCoins(ctx context.Context, sender, receiver string, amount int, t *transfer.TransferService) error {
+func (s *EmployeeService) TransferCoins(ctx context.Context, sender, receiver string, amount int, t transfer.Service) error {
 	return s.repo.TransferCoins(ctx, sender, receiver, amount, t)
 }
