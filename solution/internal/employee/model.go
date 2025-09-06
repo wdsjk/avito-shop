@@ -12,14 +12,6 @@ var (
 
 type Inventory map[string]int
 
-type Employee struct {
-	ID        int    `db:"id"`
-	Name      string `db:"name"`
-	Password  string `db:"password"`
-	Coins     int    `db:"coins"`
-	Inventory `db:"bought_items"`
-}
-
 func (i *Inventory) Scan(src interface{}) error {
 	if src == nil {
 		*i = make(Inventory)
@@ -38,4 +30,28 @@ func (i *Inventory) Scan(src interface{}) error {
 
 	*i = Inventory(m)
 	return nil
+}
+
+type Employee struct {
+	ID        int    `db:"id"`
+	Name      string `db:"name"`
+	Password  string `db:"password"`
+	Coins     int    `db:"coins"`
+	Inventory `db:"bought_items"`
+}
+
+type EmployeeDto struct {
+	Name      string `json:"name"`
+	Password  string `json:"password"`
+	Coins     int    `json:"coins"`
+	Inventory `json:"bought_items"`
+}
+
+func ToDto(e *Employee) *EmployeeDto {
+	return &EmployeeDto{
+		Name:      e.Name,
+		Password:  e.Password,
+		Coins:     e.Coins,
+		Inventory: e.Inventory,
+	}
 }

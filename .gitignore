@@ -25,7 +25,6 @@ release/
 /.gopath/
 /.gomodcache/
 
-# VSCode
 .vscode/
 *.code-workspace
 
@@ -51,6 +50,7 @@ docker-compose.override.yml
 .docker/
 
 coverage.*
+cover.*
 *.lcov
 *.gcov
 *.gcda

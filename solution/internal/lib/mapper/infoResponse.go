@@ -6,7 +6,7 @@ import (
 	"github.com/wdsjk/avito-shop/internal/transfer"
 )
 
-func InfoResponse(emp *employee.Employee, coinHistory []*transfer.TransferDto) *handlers_dto.InfoResponse {
+func InfoResponse(emp *employee.EmployeeDto, coinHistory []*transfer.TransferDto) *handlers_dto.InfoResponse {
 	resp := &handlers_dto.InfoResponse{
 		Coins: emp.Coins,
 		Inventory: make([]struct {

@@ -139,9 +139,6 @@ func TestGetEmployee_Success(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if emp.ID != 1 {
-		t.Errorf("expected: %d, got: %d", 1, emp.ID)
-	}
 	if emp.Name != expectedName {
 		t.Errorf("expected: %s, got: %s", expectedName, emp.Name)
 	}
