@@ -15,15 +15,15 @@ import (
 )
 
 type CoinHandler struct {
-	employeeService *employee.EmployeeService
-	transferService *transfer.TransferService
+	employeeService employee.Service
+	transferService transfer.Service
 	valid           *validator.Validate
 	log             *slog.Logger
 }
 
 func NewCoinHandler(
-	employeeService *employee.EmployeeService,
-	transferService *transfer.TransferService,
+	employeeService employee.Service,
+	transferService transfer.Service,
 	valid *validator.Validate, log *slog.Logger,
 ) *CoinHandler {
 	return &CoinHandler{
