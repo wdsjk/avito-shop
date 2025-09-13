@@ -16,16 +16,19 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var secretKey = []byte(os.Getenv("jwt_secret"))
+var (
+	secretKey   = []byte(os.Getenv("jwt_secret"))
+	generateJWT = utils.GenerateJWT
+)
 
 type AuthHandler struct {
-	employeeService *employee.EmployeeService
+	employeeService employee.Service
 	valid           *validator.Validate
 	log             *slog.Logger
 }
 
 func NewAuthHandler(
-	employeeService *employee.EmployeeService,
+	employeeService employee.Service,
 	valid *validator.Validate,
 	logger *slog.Logger,
 ) *AuthHandler {
@@ -63,7 +66,7 @@ func (h *AuthHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	emp, err := h.employeeService.GetEmployee(r.Context(), req.Username)
 	if errors.Is(err, dbErr.ErrEmpNotFound) {
 		name, err := h.employeeService.SaveEmployee(r.Context(), req.Username, req.Password)
-		if name == "" && err != nil {
+		if name != req.Username || err != nil {
 			h.log.Error("failed to save employee", "error", err)
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusInternalServerError)
@@ -75,7 +78,7 @@ func (h *AuthHandler) Handle(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		token, err := utils.GenerateJWT(req.Username, secretKey)
+		token, err := generateJWT(req.Username, secretKey)
 		if err != nil {
 			h.log.Error("failed to generate token", "error", err)
 			w.Header().Set("Content-Type", "application/json")
@@ -111,7 +114,7 @@ func (h *AuthHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	err = bcrypt.CompareHashAndPassword([]byte(emp.Password), []byte(req.Password))
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusUnauthorized)
 		err = json.NewEncoder(w).Encode(utils.MakeErr("invalid username or password"))
 		if err != nil {
 			h.log.Error("failed to encode response", "error", err)
@@ -120,12 +123,14 @@ func (h *AuthHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := utils.GenerateJWT(req.Username, secretKey)
+	token, err := generateJWT(req.Username, secretKey)
 	if err != nil {
+		h.log.Error("failed to generate token", "error", err)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
 		err := json.NewEncoder(w).Encode(utils.MakeErr("failed to generate token"))
 		if err != nil {
+			h.log.Error("failed to encode response", "error", err)
 			http.Error(w, "failed to encode response", http.StatusInternalServerError)
 		}
 		return
